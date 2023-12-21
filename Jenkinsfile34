@@ -1,0 +1,50 @@
+node {
+    def mavenHome = tool name: 'maven3.9.6'
+
+    stage('1.Clone Code') {
+        git 'https://github.com/Muhamdaj11/maven-web-application.git'
+    }
+
+    stage('2.Maven Build') {
+        sh "${mavenHome}/bin/mvn package"
+    }
+
+    stage('3.Code Quality Analysis') {
+        sh "${mavenHome}/bin/mvn sonar:sonar"
+        // Edit pom.xml properties with SonarQube server details
+    }
+
+    stage('4.Upload Artifacts') {
+        sh "${mavenHome}/bin/mvn deploy"
+    }
+
+    stage('5.Deploy to UAT') {
+        // Use deploy to container plugin
+        deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.188.4.250:8080/')], contextPath: null, war: 'target/*.war'
+    }
+
+    stage('6.Manual Approval') {
+        sh "echo 'Please review & approve'"
+        timeout(time: 300, unit: 'MINUTES') {
+            input message: 'Application ready for deployment, Please review and approve'
+        }
+    }
+    
+    stage('7.Deploy2Prod'){
+    //use deploy to container plugin
+     deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.188.4.250:8080/')], contextPath: null, war: 'target/*.war'
+    }
+    stage('8.APM'){
+    sh "echo 'monitoring and observation and alerting' "
+    sh "echo 'application performance Monitoring in progress' "
+  }
+  stage('9.Notification'){
+    sh "echo create email notification to resolve any issue that may arise"
+    //use pipeline syntax and email notification plugin to achieve this  
+   emailext body: '''The build and deployment status for tesla-webapp follows.
+
+Regards,
+Jaysleekytech''', recipientProviders: [developers(), upstreamDevelopers(), buildUser()], subject: 'job status', to: 'muhamdaj11@gmail.com'
+
+  }
+}
