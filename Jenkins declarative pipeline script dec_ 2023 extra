@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'maven3.9.6'
+    }
+
+    stages {
+        stage('1.Clone Code') {
+            steps {
+                git 'https://github.com/Muhamdaj11/maven-web-application.git'
+            }
+        }
+
+        stage('2.Maven Build') {
+            steps {
+                sh "${tool name: 'maven3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'}/bin/mvn package"
+            }
+        }
+
+        stage('3.Code Quality Analysis') {
+            steps {
+                sh "${tool name: 'maven3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'}/bin/mvn sonar:sonar"
+                // Edit pom.xml properties with SonarQube server details
+            }
+        }
+
+        stage('4.Upload Artifacts') {
+            steps {
+                sh "${tool name: 'maven3.9.6', type: 'hudson.tasks.Maven$MavenInstallation'}/bin/mvn deploy"
+            }
+        }
+
+        stage('5.Deploy to UAT') {
+            steps {
+                // Use deploy to container plugin
+                 deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.223.33.62:8080/')], contextPath: null, war: 'target/*war'
+            }
+        }
+
+        stage('6.Manual Approval') {
+            steps {
+                echo 'Please review & approve'
+                timeout(time: 300, unit: 'MINUTES') {
+                    input message: 'Application ready for deployment, Please review and approve'
+                }
+            }
+        }
+
+        stage('7.Deploy2Prod') {
+            steps {
+                // Use deploy to container plugin
+                deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.223.33.62:8080/')], contextPath: null, war: 'target/*war'
+            }
+        }
+
+        stage('8.APM') {
+            steps {
+                echo 'Monitoring and observation and alerting'
+                echo 'Application performance monitoring in progress'
+            }
+        }
+
+        stage('9.Notification') {
+            steps {
+                echo 'Create email notification to resolve any issue that may arise'
+                // Use pipeline syntax and email notification plugin to achieve this
+                emailext body: '''The build and deployment status for tesla-webapp follows.'''
+            }
+        }
+    }
+}
