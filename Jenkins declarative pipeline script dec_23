@@ -8,25 +8,26 @@ pipeline{
   stages{
     stage('1clonecode'){
       steps{
-        git "https://github.com/LandmakTechnology/maven-web-application"
+        git "https://github.com/Muhamdaj11/maven-web-application.git"
+          sh "echo 'cloning completed' "
       }
     }
     stage('2mavenBuild'){
     steps{
           sh "echo 'running JUnit-test-cases' "
-          sh "echo 'testing must passed to create artifacts ' "
+          sh "echo 'testing must passed to create artifacts' "
           sh "mvn clean package" 
     }
   }
     stage('3CodeQuality'){
     steps{
-         // sh "mvn sonar:sonar" 
+          sh "mvn sonar:sonar" 
           sh "echo CodeQualityAnalysis completed"
     }
   }
     stage('4UploadArtifacts'){
     steps{
-          //sh "mvn deploy" 
+          sh "mvn deploy" 
           sh "echo artifacts uploaded successfully"
           sh "echo I am now a Build and Release Engineer"
           sh "echo Build and release completed"
@@ -35,8 +36,7 @@ pipeline{
   stage('5deploy2UAT'){
     steps{
           sh "echo Deployment is ready for the client review" 
-          deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://10.0.0.38:8088/')], contextPath: null, war: 'target/*war  '
-       
+          deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.223.33.62:8080/')], contextPath: null, war: 'target/*war'      
     }
   } 
   stage('6manualApproval'){
@@ -50,8 +50,7 @@ pipeline{
     stage('7deploy2prod'){
     steps{
           sh "echo application reviewed, approved and ready for the market" 
-          deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://10.0.0.38:8088/')], contextPath: null, war: 'target/*war  '
-
+          deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://18.223.33.62:8080/')], contextPath: null, war: 'target/*war'
     }
   } 
   }
@@ -59,29 +58,23 @@ pipeline{
     always{
       emailext body: '''Hi,
 
-Build status.
+Build status
 
-Landmark Technologies.
-Tel: +1 437 215 2483''', recipientProviders: [developers(), requestor(), buildUser()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-
+Jaysleekytechnologies. +447069762266''', recipientProviders: [developers(), buildUser(), upstreamDevelopers(), requestor()], subject: '', to: 'muhamdaj11@gmail.com'
     }
   success {
-     emailext body: '''Hi,
+    emailext body: '''Hi,
 
 Build successful.
 
-Landmark Technologies.
-Tel: +1 437 215 2483''', recipientProviders: [developers(), requestor(), buildUser()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-
+Jaysleekytechnologies. +447069762266''', recipientProviders: [developers(), buildUser(), upstreamDevelopers(), requestor()], subject: '', to: 'muhamdaj11@gmail.com'
   }
   failure{
-    emailext body: '''Hi,
+  emailext body: '''Hi,
 
 Build failed.
 
-Landmark Technologies.
-Tel: +1 437 215 2483''', recipientProviders: [developers(), requestor(), buildUser()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-
+Jaysleekytechnologies. +447069762266''', recipientProviders: [developers(), buildUser(), upstreamDevelopers(), requestor()], subject: '', to: 'muhamdaj11@gmail.com'
   }
   }
 }
