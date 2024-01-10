@@ -34,3 +34,11 @@ node{
     }
   }
 }
+  }
+  stage('deployment'){
+    sh "echo Deploying applications"
+    nodejs(nodeJSInstallationName: 'nodejs21') {
+        sh 'npm start'
+    }
+  }
+}
